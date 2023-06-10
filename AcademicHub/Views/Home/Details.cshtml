@@ -1,0 +1,24 @@
+﻿
+<h1>Title</h1>
+<div>
+    <p>
+        This is a Rebel that surrendered to us. Although he denies it, I believe there may be more of them, and I request permission to conduct a further search of the area. He was armed only with this. Good work, Commander. Leave us. Conduct your search and bring his companions to me. Yes, my Lord.
+    </p>
+</div>
+
+
+
+@using (Html.BeginForm("ProcessEditorContent", "Home", FormMethod.Post))
+{
+    <textarea cols="80" id="editor1" name="editor1" rows="10"></textarea>
+    <input type="submit" value="Submit" />
+}
+<script src="https://cdn.ckeditor.com/4.15.1/standard-all/ckeditor.js"></script>
+<script>
+    CKEDITOR.replace('editor1', {
+        fullPage: true,
+        extraPlugins: 'docprops',
+        allowedContent: true,
+        height: 320
+    });
+</script>

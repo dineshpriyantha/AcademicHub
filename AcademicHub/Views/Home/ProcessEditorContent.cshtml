@@ -1,0 +1,16 @@
+﻿
+@{
+    ViewData["Title"] = "ProcessEditorContent";
+}
+
+<h1>ProcessEditorContent</h1>
+
+@model HtmlContentModel
+
+<h2>HTML Content</h2>
+
+@if (Model != null && Model.HtmlContent != null)
+{
+    
+    <div>@Html.Raw(Model.HtmlContent)</div>
+}

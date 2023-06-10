@@ -1,0 +1,44 @@
+﻿
+@model DataAccessLayer.Model.Category
+@{
+    ViewData["Title"] = "Category";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h1>Category</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form method="post" asp-action="Category">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="CId" class="form-control" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DisplayArea" class="control-label"></label>
+              @*  @Html.DropDownListFor(m => m.DisplayArea, ViewBag.DisplayArea as IEnumerable<SelectListItem>, "Select DisplayArea", new{ @class = "form-control" })
+              *@ @* @Html.EnumDropDownListFor(m => m.DisplayArea, "Select a value")
+                *@    
+                @Html.DropDownListFor(x => x.DisplayArea,ViewBag.DisplayArea as SelectList, "Select DisplayArea", new{ @class = "form-control" })
+                <span asp-validation-for="DisplayArea" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CRank" class="control-label"></label>
+                <input asp-for="CRank" class="form-control" />
+                <span asp-validation-for="CRank" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
