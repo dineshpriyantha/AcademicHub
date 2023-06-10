@@ -18,19 +18,19 @@ namespace BusinessLogic.Services
             _context = context;
         }
 
-        public async Task<bool> AddCategory(Category category)
+        public async Task<Result<bool>> AddCategory(Category category)
         {
-            if (category == null) return false;
+            if (category == null) return new Result<bool> { Value = false , ErrorMessage = "Invalid categoty"};
 
             // check if a hub with the same category
             var existingCategory = await _context.Categories.FirstOrDefaultAsync(x => x.Name == category.Name);
 
-            if (existingCategory != null) return false;
+            if (existingCategory != null) return new Result<bool> { Value = false, ErrorMessage = "Invalid categoty" };
 
             _context.Categories.Add(category);
             var rowsAffected = await _context.SaveChangesAsync();
 
-            return rowsAffected > 0;
+            return new Result<bool> { Value = true, ErrorMessage = null };
         }
 
         public async Task<IEnumerable<Category>> GetCategories()
