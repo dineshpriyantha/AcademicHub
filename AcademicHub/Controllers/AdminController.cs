@@ -51,7 +51,7 @@ namespace AcademicHub.Controllers
 
             ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
 
-            if (!ModelState.IsValid) { return View(category); }
+            //if (!ModelState.IsValid) { return View(category); }
 
             try
             {

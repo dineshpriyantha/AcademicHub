@@ -1,12 +1,14 @@
 using DataAccessLayer;
 using Microsoft.EntityFrameworkCore;
+using System.Configuration;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<AcademicHubDbContext>(con => con.UseSqlServer(builder.Configuration.GetConnectionString("connectionstr")));
-
+//builder.Services.AddDbContext<AcademicHubDbContext>(con => con.UseSqlServer(builder.Configuration.GetConnectionString("connectionstr")));
+builder.Services.AddSqlServer<AcademicHubDbContext>(builder.Configuration.GetConnectionString("connectionstr"));
 
 var app = builder.Build();
 

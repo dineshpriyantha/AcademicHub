@@ -9,7 +9,7 @@ namespace BusinessLogic.Services
 {
     public interface ICategoryManager
     {
-        Task<Result<bool>> AddCategory(Category category);
+        Result<bool> AddCategory(Category category);
         Task<bool> UpdateCategory(Category category);
         Task RemoveCategory(int? id);
         Task<Category> GetCategoryById(int? id);

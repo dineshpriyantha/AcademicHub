@@ -1,11 +1,14 @@
 ﻿using DataAccessLayer;
 using DataAccessLayer.Model;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace BusinessLogic.Services
 {
@@ -18,19 +21,38 @@ namespace BusinessLogic.Services
             _context = context;
         }
 
-        public async Task<Result<bool>> AddCategory(Category category)
+        public Result<bool> AddCategory(Category category)
         {
             if (category == null) return new Result<bool> { Value = false , ErrorMessage = "Invalid categoty"};
 
-            // check if a hub with the same category
-            var existingCategory = await _context.Categories.FirstOrDefaultAsync(x => x.Name == category.Name);
+            try
+            {                
+                string sql = "EXEC sp_AHub_AddCategory @Name, @Date, @DisplayAreaId, @CRank, @Result OUTPUT, @ErrorMessage OUTPUT";
+                
+                var name = new SqlParameter("@Name", SqlDbType.NVarChar) { Value = category.Name };
+                var date = new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTime.Now };
+                var displayAreaId = new SqlParameter("@DisplayAreaId", SqlDbType.Int) { Value = category.DisplayArea };
+                var crank = new SqlParameter("@CRank", SqlDbType.Int) { Value = category.CRank };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var errorMsg = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
+               
+                int rowsAffected = _context.Database.ExecuteSqlRaw(sql, name, date, displayAreaId, crank, result, errorMsg);
 
-            if (existingCategory != null) return new Result<bool> { Value = false, ErrorMessage = "Invalid categoty" };
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var errorFromDb = errorMsg.Value?.ToString();
 
-            _context.Categories.Add(category);
-            var rowsAffected = await _context.SaveChangesAsync();
+                return new Result<bool> { Value = resultFromDb , ErrorMessage = errorFromDb };
 
-            return new Result<bool> { Value = true, ErrorMessage = null };
+            }
+            catch (TaskCanceledException ex)
+            {                
+                // Handle the cancellation by returning an appropriate result or error message
+                return new Result<bool> { Value = false, ErrorMessage = "Operation canceled. Please try again." };
+            }
+            catch (Exception ex)
+            {
+                return new Result<bool> { Value = false, ErrorMessage = $"Error : {ex.Message}" };
+            }
         }
 
         public async Task<IEnumerable<Category>> GetCategories()
