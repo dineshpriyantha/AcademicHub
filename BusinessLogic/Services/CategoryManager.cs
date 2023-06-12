@@ -36,7 +36,7 @@ namespace BusinessLogic.Services
                 var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
                 var errorMsg = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
                
-                int rowsAffected = _context.Database.ExecuteSqlRaw(sql, name, date, displayAreaId, crank, result, errorMsg);
+                _context.Database.ExecuteSqlRaw(sql, name, date, displayAreaId, crank, result, errorMsg);
 
                 var resultFromDb = Convert.ToBoolean(result.Value);
                 var errorFromDb = errorMsg.Value?.ToString();
@@ -55,10 +55,13 @@ namespace BusinessLogic.Services
             }
         }
 
-        public async Task<IEnumerable<Category>> GetCategories()
-        {
-            return await _context.Categories.ToListAsync();
-        }
+        //public Result<List<Category>> GetCategories()
+        //{
+        //    var categories = new List<Category>();
+                
+                
+        //    return new Result<categories> { Value = true, ErrorMessage = "Success"};
+        //}
 
         public async Task<Category> GetCategoryById(int? id)
         {
@@ -77,32 +80,55 @@ namespace BusinessLogic.Services
             return category;
         }
 
-        public async Task RemoveCategory(int? id)
+        public Result<bool> RemoveCategory(int? id)
         {
-            var category = await _context.Categories.FirstOrDefaultAsync(x => x.CId == id);
+            if (id == null) return new Result<bool> { Value = false, ErrorMessage = "Invalid Category" };
 
-            if (category == null) return;
+            try
+            {
+                string sql = "EXEC sp_AHub_DeleteCategory @CId";
+                var cId = new SqlParameter("@CId", SqlDbType.Int) { Value = id };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var errorMsg = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
 
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
+                _context.Database.ExecuteSqlRaw(sql, cId, result, errorMsg);
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var errorFromDb = errorMsg.Value?.ToString();
+
+                return new Result<bool> { Value = resultFromDb, ErrorMessage = errorFromDb };
+            }
+            catch (Exception ex)
+            {
+                return new Result<bool> { Value = false, ErrorMessage = $"Error {ex.Message}" };
+            }
         }
 
-        public async Task<bool> UpdateCategory(Category category)
+        public Result<bool> UpdateCategory(Category category)
         {
-            if (category == null) return false;
+            if (category == null) return new Result<bool> { Value = false, ErrorMessage = "Invalid categoty" };
 
-            var existingCategory = await _context.Categories.FirstOrDefaultAsync(x => x.CId == category.CId);
+            try
+            {
+                string sql = "EXEC sp_AHub_UpdateCategory @CId, @Name, @Date, @DisplayAreaId, @CRank, @Result OUTPUT, @ErrorMessage OUTPUT";
+                var cId = new SqlParameter("@CId", SqlDbType.Int) { Value = category.CId };
+                var name = new SqlParameter("@Name", SqlDbType.NVarChar) { Value = category.Name };
+                var date = new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTime.Now };
+                var displayAreaId = new SqlParameter("@DisplayAreaId", SqlDbType.Int) { Value = category.DisplayArea };
+                var crank = new SqlParameter("@CRank", SqlDbType.Int) { Value = category.CRank };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var errorMsg = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
 
-            if (existingCategory == null) return false;
+                _context.Database.ExecuteSqlRaw(sql, cId, name, date, displayAreaId, crank, result, errorMsg);
 
-            existingCategory.CRank = category.CRank;
-            existingCategory.DisplayArea = category.DisplayArea;
-            existingCategory.Date = DateTime.Now;
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var errorFromDb = errorMsg.Value?.ToString();
 
-            _context.Categories.Update(category);
-            var rowsAffected = await _context.SaveChangesAsync();
-
-            return rowsAffected > 0;
+                return new Result<bool> { Value = resultFromDb, ErrorMessage = errorFromDb };
+            }
+            catch (Exception ex)
+            {
+                return new Result<bool> { Value = false, ErrorMessage = $"Error {ex.Message}" };
+            }
         }
     }
 }
