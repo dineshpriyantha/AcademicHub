@@ -1,0 +1,40 @@
+﻿@using DataAccessLayer.Model
+
+@model Category
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@{
+    ViewData["Title"] = "Update";
+}
+
+
+<h2>Update Category</h2>
+
+@using (Html.BeginForm("Update", "Admin", FormMethod.Post))
+{
+    @Html.HiddenFor(model => model.CId)
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Name)
+        @Html.TextBoxFor(model => model.Name, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Date)
+        @Html.TextBoxFor(model => model.Date, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.DisplayArea)
+        @*@Html.DropDownListFor(x => x.DisplayArea,ViewBag.DisplayArea as SelectList, "Select DisplayArea", new{ @class = "form-control" })*@
+        @Html.DropDownListFor(model => model.DisplayArea, ViewBag.DisplayArea as SelectList, "-- Select Display Area --", new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.CRank)
+        @Html.TextBoxFor(model => model.CRank, new { @class = "form-control" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+}

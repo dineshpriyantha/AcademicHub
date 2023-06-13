@@ -137,10 +137,67 @@ END
 
 
 CREATE PROCEDURE sp_AHub_GetCategory
-	
+	@Result INT OUTPUT,
+	@ErrorMessage NVARCHAR(200) OUTPUT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	BEGIN
+		SELECT * FROM Categories
 
+		SET @Result = 1;
+		SET @ErrorMessage = 'Success';
+	END
+END
+
+
+ALTER PROCEDURE sp_AHub_GetCategoryById
+	@CId INT,
+	@Result INT OUTPUT,
+	@ErrorMessage NVARCHAR(200) OUTPUT
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	IF EXISTS (SELECT 1 FROM Categories WHERE CId = @CId)
+	BEGIN
+		BEGIN
+			SELECT * FROM Categories WHERE CId = @CId
+
+			SET @Result = 1;
+			SET @ErrorMessage = 'Success';
+		END
+	END
+	ELSE
+	BEGIN
+		SET @Result = 0;
+		SET @ErrorMessage = 'Category Not Found';
+	END	
+END
+
+sp_AHub_GetCategoryById 5 , '',''
 
 sp_AHub_AddCategory 'Efg', '2023/6/11', 1,2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 create table test (

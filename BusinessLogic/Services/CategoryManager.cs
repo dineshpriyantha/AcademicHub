@@ -55,29 +55,46 @@ namespace BusinessLogic.Services
             }
         }
 
-        //public Result<List<Category>> GetCategories()
-        //{
-        //    var categories = new List<Category>();
-                
-                
-        //    return new Result<categories> { Value = true, ErrorMessage = "Success"};
-        //}
-
-        public async Task<Category> GetCategoryById(int? id)
+        public Result<List<Category>> GetCategories()
         {
-            if(id == null)
+            string sql = "EXEC sp_AHub_GetCategory @Result OUTPUT, @ErrorMessage OUTPUT";
+            var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            var errorMsg = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
+
+            try
             {
-                throw new ArgumentNullException(nameof(id));
+                var categoryList = _context.Categories.FromSqlRaw<Category>(sql, result, errorMsg).ToList();
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var errorFromDb = errorMsg.Value?.ToString();
+
+                return new Result<List<Category>> { Value = categoryList, ErrorMessage = errorFromDb! };
             }
-
-            var category = await _context.Categories.FirstOrDefaultAsync(x => x.CId == id);
-
-            if(category == null)
+            catch (Exception ex)
             {
-                throw new ArgumentException("The specified post does not exist.", nameof(category));
+                return new Result<List<Category>> { Value = null!, ErrorMessage = $"Error {ex.Message}" };
             }
+        }
 
-            return category;
+        public Result<Category> GetCategoryById(int? id)
+        {
+            if (id == null) return new Result<Category> { Value = null!, ErrorMessage = "Invalid Category" };
+            try
+            {
+                string sql = "EXEC sp_AHub_GetCategoryById @CId, @Result OUTPUT, @ErrorMessage OUTPUT";
+                var cId = new SqlParameter("@CId", SqlDbType.Int) { Value = id };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var errorMsg = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
+
+                var category = _context.Categories.FromSqlRaw<Category>(sql, cId, result, errorMsg).AsEnumerable().FirstOrDefault();
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var errorFromDb = errorMsg.Value?.ToString();
+
+                return new Result<Category> { Value = category!, ErrorMessage = errorFromDb! };
+            }
+            catch (Exception ex)
+            {
+                return new Result<Category> { Value = null!, ErrorMessage = $"Error {ex.Message}" };
+            }
         }
 
         public Result<bool> RemoveCategory(int? id)
@@ -86,7 +103,7 @@ namespace BusinessLogic.Services
 
             try
             {
-                string sql = "EXEC sp_AHub_DeleteCategory @CId";
+                string sql = "EXEC sp_AHub_DeleteCategory @CId, @Result OUTPUT, @ErrorMessage OUTPUT";
                 var cId = new SqlParameter("@CId", SqlDbType.Int) { Value = id };
                 var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
                 var errorMsg = new SqlParameter("@ErrorMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
@@ -95,7 +112,7 @@ namespace BusinessLogic.Services
                 var resultFromDb = Convert.ToBoolean(result.Value);
                 var errorFromDb = errorMsg.Value?.ToString();
 
-                return new Result<bool> { Value = resultFromDb, ErrorMessage = errorFromDb };
+                return new Result<bool> { Value = resultFromDb, ErrorMessage = errorFromDb! };
             }
             catch (Exception ex)
             {

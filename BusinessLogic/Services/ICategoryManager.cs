@@ -12,8 +12,8 @@ namespace BusinessLogic.Services
         Result<bool> AddCategory(Category category);
         Result<bool> UpdateCategory(Category category);
         Result<bool> RemoveCategory(int? id);
-        Task<Category> GetCategoryById(int? id);
-        //Result<List<Category>> GetCategories();
+        Result<Category> GetCategoryById(int? id);
+        Result<List<Category>> GetCategories();
     }
 
     public class Result<T>

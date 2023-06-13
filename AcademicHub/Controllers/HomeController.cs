@@ -15,6 +15,7 @@ namespace AcademicHub.Controllers
 
         public IActionResult Index()
         {
+            //var categiesresult = 
             return View();
         }
 
