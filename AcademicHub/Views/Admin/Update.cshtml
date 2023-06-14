@@ -3,13 +3,16 @@
 @model Category
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-}
-@{
     ViewData["Title"] = "Update";
 }
 
-
 <h2>Update Category</h2>
+@if (!string.IsNullOrEmpty(@ViewBag.message))
+{
+    <div class="alert alert-success" role="alert">
+        @ViewBag.message
+    </div>
+}
 
 @using (Html.BeginForm("Update", "Admin", FormMethod.Post))
 {
@@ -18,11 +21,6 @@
     <div class="form-group">
         @Html.LabelFor(model => model.Name)
         @Html.TextBoxFor(model => model.Name, new { @class = "form-control" })
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.Date)
-        @Html.TextBoxFor(model => model.Date, new { @class = "form-control" })
     </div>
 
     <div class="form-group">
@@ -35,6 +33,8 @@
         @Html.LabelFor(model => model.CRank)
         @Html.TextBoxFor(model => model.CRank, new { @class = "form-control" })
     </div>
-
-    <button type="submit" class="btn btn-primary">Update</button>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a asp-action="Index" class="btn btn-dark">Back to List</a>
+    </div>
 }

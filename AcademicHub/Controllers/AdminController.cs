@@ -55,20 +55,19 @@ namespace AcademicHub.Controllers
         [HttpPost]
         public IActionResult Category(Category category)
         {
-            var enumData = from DisplayArea e in Enum.GetValues(typeof(DisplayArea))
-                           select new
-                           {
-                               ID = (int)e,
-                               Name = e.ToString()
-                           };
-
-            ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
-
-            //if (!ModelState.IsValid) { return View(category); }
-
             try
             {
+                var enumData = from DisplayArea e in Enum.GetValues(typeof(DisplayArea))
+                               select new
+                               {
+                                   ID = (int)e,
+                                   Name = e.ToString()
+                               };
+
+                ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
+
                 var addCategory = _manager.AddCategory(category);
+                ViewBag.message = addCategory.ErrorMessage;
             }
             catch (Exception ex)
             {
@@ -108,28 +107,28 @@ namespace AcademicHub.Controllers
         }
 
         [HttpPost]
-        public IActionResult Update()
+        public IActionResult Update(Category category)
         {
-            var enumData = from DisplayArea e in Enum.GetValues(typeof(DisplayArea))
-                           select new
-                           {
-                               ID = (int)e,
-                               Name = e.ToString()
-                           };
-
-            ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
-
             //if (!ModelState.IsValid) { return View(category); }
 
             try
             {
-                //var addCategory = _manager.AddCategory(category);
+                var enumData = from DisplayArea e in Enum.GetValues(typeof(DisplayArea))
+                               select new
+                               {
+                                   ID = (int)e,
+                                   Name = e.ToString()
+                               };
+
+                ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
+                var updateCategory = _manager.UpdateCategory(category);
+                ViewBag.message = updateCategory.ErrorMessage;
             }
             catch (Exception ex)
             {
-
+                return View("Error ", ex.Message);
             }
-            return View();
+            return View(category);
         }
 
         
