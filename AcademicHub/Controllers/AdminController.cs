@@ -68,10 +68,12 @@ namespace AcademicHub.Controllers
 
                 var addCategory = _manager.AddCategory(category);
                 ViewBag.message = addCategory.ErrorMessage;
+                ViewBag.Success = addCategory.Value;
             }
             catch (Exception ex)
             {
-                
+                ViewBag.message = ex.Message;
+                ViewBag.Success = false;
             }
             return View(category);
         }
@@ -92,18 +94,18 @@ namespace AcademicHub.Controllers
                                        Name = e.ToString()
                                    };
                     ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
-
                     return View(category.Value);
                 }
-                else
-                {
-                    return View("Error ", "Category not found.");
-                }
+                ViewBag.message = "Category not found.";
+                ViewBag.Success = false;
             }
             catch (Exception ex)
             {
-                return View("Error ", ex.Message);
+                ViewBag.message = ex.Message;
+                ViewBag.Success = false;
+                
             }
+            return View("Error");
         }
 
         [HttpPost]
@@ -123,6 +125,7 @@ namespace AcademicHub.Controllers
                 ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
                 var updateCategory = _manager.UpdateCategory(category);
                 ViewBag.message = updateCategory.ErrorMessage;
+                ViewBag.success = updateCategory.Value;
             }
             catch (Exception ex)
             {
@@ -157,6 +160,13 @@ namespace AcademicHub.Controllers
         {
             return View();
         }
+
+        [HttpPost]
+        public IActionResult SubCategory(Subcategory subcategory)
+        {
+            return View();
+        }
+
 
         public IActionResult Post()
         {

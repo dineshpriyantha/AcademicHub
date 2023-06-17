@@ -8,10 +8,11 @@
 <h1>Category</h1>
 @if (!string.IsNullOrEmpty(@ViewBag.message))
 {
-    <div class="alert alert-success" role="alert">
+    <div class="alert @(ViewBag.Success ? "alert-success" : "alert-danger")" role="alert">
         @ViewBag.message
     </div>
 }
+
 
 <hr />
 <div class="row">
