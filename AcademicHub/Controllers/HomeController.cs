@@ -1,4 +1,8 @@
 ﻿using AcademicHub.Models;
+using BusinessLogic.Services;
+using DataAccessLayer;
+using DataAccessLayer.Model;
+using DataAccessLayer.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -7,16 +11,35 @@ namespace AcademicHub.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly CategoryManager _categoryManager;
+        private readonly AcademicHubDbContext _context;
+        private readonly SubCategoryManager _subCategoryManager;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, AcademicHubDbContext context)
         {
             _logger = logger;
+            _context = context;
+            _categoryManager = new CategoryManager(_context);
+            _subCategoryManager= new SubCategoryManager(_context);
         }
 
         public IActionResult Index()
         {
-            //var categiesresult = 
-            return View();
+            
+            // Retrieve the list of categories from your data source
+            List<Category> categories = _categoryManager.GetCategories().Value;
+            List<Subcategory> subCategories = _subCategoryManager.GetAllSubCategories().Value;
+
+            var viewModel = new CategorySubcategoryViewModel()
+            {
+                Category = categories,
+                Subcategory = subCategories
+            };
+
+            // Populate the Subcategory property if needed
+            // viewModel.Subcategory = ...
+
+            return View(viewModel);
         }
 
         public IActionResult Privacy()

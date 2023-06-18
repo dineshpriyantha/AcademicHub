@@ -1,4 +1,7 @@
-﻿@{
+﻿@using DataAccessLayer.ViewModel
+@model CategorySubcategoryViewModel
+
+@{
     ViewData["Title"] = "Home Page";
 }
   
@@ -22,99 +25,35 @@
             <div class="col-md-3">                
 
             <div class="accordion accordion-flush" id="accordionFlushExample">
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                            English
-                        </button>
-                    </h2>
-                    <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                        <table class="table">
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">"English Grammar: A Comprehensive Guide"</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">"Essential English Vocabulary: Building Blocks for Fluency"</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Shipments</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Tex</a>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
-                            Japanese
-                        </button>
-                    </h2>
-                    <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                        <table class="table">
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Orders</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Invoices</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Shipments</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Tex</a>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
-                            Programming
-                        </button>
-                    </h2>
-                    <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                        <table class="table">
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Orders</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Invoices</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Shipments</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a href="http://www.jquery2dotnet.com">Tex</a>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
+                @if(Model.Category != null)
+                {
+                    @foreach (var category in Model.Category)
+                    {
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#category-@category.CId" aria-expanded="false" aria-controls="category-@category.CId">
+                                    @category.Name
+                                </button>
+                            </h2>
+                            <div id="category-@category.CId" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                                <table class="table">
+                                    @if(Model.Subcategory != null)
+                                    {
+                                        @foreach (var subCategory in Model.Subcategory.Where(x => x.CategoryId == category.CId))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <a href="http://www.jquery2dotnet.com">@subCategory.Name</a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }                                   
+                                    
+                                </table>
+                            </div>
+                        </div>
+                    }
+                }                
             </div>
             <br />
             <div class="card">
