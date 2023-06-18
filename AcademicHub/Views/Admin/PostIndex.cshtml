@@ -30,29 +30,61 @@
                     </tr>
                 </thead>
                 <tbody>
-                @foreach (var post in Model)
-                {
-                    <tr>
-                        <td>@post.Title</td>
-                        <td>@post.Date</td>
-                        <td>@post.Content</td>
-                        <td>@post.CategoryId</td>
-                        <td>@post.SubcategoryId</td>
-                        <td>
-                            <a href="@Url.Action("Update", "Admin", new { id = post.PId })" class="btn btn-primary">E</a> |
-                            <a href="@Url.Action("Delete", "Admin", new { id = post.PId })" class="btn btn-danger" onclick="return confirmDelete()">D</a>
-                        </td>
-                    </tr>
-                }
+                    @foreach (var post in Model)
+                    {
+                        <tr>
+                            <td>@post.Title</td>
+                            <td>@post.Date</td>
+                            <td>
+                                @if (post.Content.Length > 100)
+                                {
+                                    <span class="truncated-content">@Html.Raw(TruncateString(post.Content, 100))</span>
+                                    <a href="#" class="expand-link" data-toggle="collapse" data-target="#collapse-@post.PId">...</a>
+                                    <div id="collapse-@post.PId" class="collapse">
+                                        @Html.Raw(post.Content)
+                                    </div>
+                                }
+                                else
+                                {
+                                    @Html.Raw(post.Content)
+                                }
+                            </td>
+                            <td>@post.CategoryId</td>
+                            <td>@post.SubcategoryId</td>
+                            <td>
+                                <a href="@Url.Action("Update", "Admin", new { id = post.PId })" class="btn btn-primary">E</a> |
+                                <a href="@Url.Action("Delete", "Admin", new { id = post.PId })" class="btn btn-danger" onclick="return confirmDelete()">D</a>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         }
         else
         {
-                <p>No posts found.</p>
+            <p>No posts found.</p>
+        }
+        @{
+            string TruncateString(string content, int maxLength)
+            {
+                if (content.Length > maxLength)
+                {
+                    return content.Substring(0, maxLength);
+                }
+                return content;
+            }
         }
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        $('.expand-link').click(function (e) {
+            e.preventDefault();
+            $(this).closest('tr').find('.collapse').collapse('toggle');
+        });
+    });
+</script>
 
 <script type="text/javascript">
     function confirmDelete() {
@@ -61,5 +93,12 @@
         } else {
             return false;
         }
+    }
+
+    function TruncateString(content, maxlength){
+        if(content.length > maxlength){
+            return content.substring(0, maxlength) + "...";
+        }
+        return content;
     }
 </script>
