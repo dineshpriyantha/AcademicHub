@@ -11,12 +11,14 @@ namespace AcademicHub.Controllers
         private readonly AcademicHubDbContext _context;
         private readonly CategoryManager _CategoryManager;
         private readonly SubCategoryManager _subCategoryManager;
+        private readonly PostManager _post;
 
         public AdminController(AcademicHubDbContext context)
         {
             _context = context;
             _CategoryManager = new CategoryManager(_context);
             _subCategoryManager = new SubCategoryManager(_context);
+            _post= new PostManager(_context);
         }
 
         public IActionResult Index()
@@ -314,10 +316,91 @@ namespace AcademicHub.Controllers
             }
         }
 
-        public IActionResult Post()
+        public IActionResult PostIndex()
         {
+            var postlist = _post.GetAllPosts();
+
+            if (postlist.Value != null)
+            {
+                var categories = postlist.Value;
+                return View(categories);
+            }
+            else
+            {
+                var errorMassage = postlist.ReturnMessage;
+                return View("Error", errorMassage);
+            }
+        }
+
+        public IActionResult CreatePost()
+        {
+            try
+            {
+                var categorylist = _CategoryManager.GetCategories();
+                var enumData = from Category e in categorylist.Value.ToList()
+                               select new
+                               {
+                                   ID = (int)e.CId,
+                                   Name = e.Name.ToString()
+                               };
+
+                ViewBag.Category = new SelectList(enumData, "ID", "Name");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.message = ex.Message;
+                ViewBag.Success = false;
+            }
             return View();
         }
+
+        [HttpPost]
+        public IActionResult CreatePost(Post post)
+        {
+            try
+            {
+                var categorylist = _CategoryManager.GetCategories();
+                var enumData = from Category e in categorylist.Value.ToList()
+                               select new
+                               {
+                                   ID = (int)e.CId,
+                                   Name = e.Name.ToString()
+                               };
+
+                ViewBag.Category = new SelectList(enumData, "ID", "Name");
+
+                var addPost = _post.AddPost(post);
+                ViewBag.message = addPost.ReturnMessage;
+                ViewBag.Success = addPost.Value;
+            }
+            catch (Exception ex)
+            {
+                ViewBag.message = ex.Message;
+                ViewBag.Success = false;
+            }
+
+            return View(post);
+        }
+
+        [HttpGet]
+        public IActionResult GetSubcategories(int categoryId)
+        {
+            try
+            {
+                // Retrieve the subcategories based on the selected category
+                var subcategories = _subCategoryManager.GetAllSubCategories().Value.Where(x => x.CategoryId == categoryId);
+                
+                ViewBag.Success = false;
+                return Json(subcategories);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.message = ex.Message;
+                ViewBag.Success = false;
+                return Json(null);
+            }            
+        }
+
 
     }
 }

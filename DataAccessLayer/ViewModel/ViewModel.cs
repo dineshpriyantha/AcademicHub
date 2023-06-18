@@ -11,6 +11,7 @@ namespace DataAccessLayer.ViewModel
     {
         public List<Category> Category { get; set; }
         public List<Subcategory> Subcategory { get; set; }
+        public List<Post> Posts { get; set; }
     }
 
 }

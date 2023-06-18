@@ -1,8 +1,10 @@
 ﻿using DataAccessLayer;
 using DataAccessLayer.Model;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,68 +20,74 @@ namespace BusinessLogic.Services
             _context = context;
         }
 
-        public async Task<bool> AddPost(Post post)
+        public Result<bool> AddPost(Post post)
         {
-            if(post == null) return false;
+            if (post == null) return new Result<bool> { Value = false, ReturnMessage = "Invalid categoty" };
 
-            // Check if a hub with the same title
-            var existingTitle = await _context.Posts.FirstOrDefaultAsync(b => b.Title == post.Title);
-
-            if(existingTitle != null) { return false; }
-
-            _context.Posts.Add(post);
-            var rowsAffected = await _context.SaveChangesAsync();
-
-            return rowsAffected > 0;
-        }
-
-        public async Task<IEnumerable<Post>> GetAllPosts()
-        {
-            return await _context.Posts.ToListAsync();
-        }
-
-        public async Task<Post> GetPostById(int? id)
-        {
-            if (id == null)
+            try
             {
-                throw new ArgumentNullException(nameof(id));
-            }
+                string sql = "EXEC sp_AHub_AddPost @Title, @Date, @Content, @CategoryId, @SubcategoryId, @Result OUTPUT, @ReturnMessage OUTPUT";
 
-            var post = await _context.Posts.FirstOrDefaultAsync(x => x.PId == id);
-            if(post == null)
+                var title = new SqlParameter("@Title", SqlDbType.NVarChar) { Value = post.Title };
+                var date = new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTime.Now };
+                var content = new SqlParameter("@Content", SqlDbType.NVarChar) { Value = post.Content };
+                var categoryId = new SqlParameter("@CategoryId", SqlDbType.Int) { Value = post.CategoryId };
+                var subcategoryId = new SqlParameter("@SubcategoryId", SqlDbType.Int) { Value = post.SubcategoryId };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var returnMsg = new SqlParameter("@ReturnMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
+
+                _context.Database.ExecuteSqlRaw(sql, title, date, content, categoryId, subcategoryId, result, returnMsg);
+
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var returnFromDb = returnMsg.Value?.ToString();
+
+                return new Result<bool> { Value = resultFromDb, ReturnMessage = returnFromDb! };
+
+            }
+            catch (TaskCanceledException ex)
             {
-                throw new ArgumentException("The specified post does not exist.", nameof(post));
+                // Handle the cancellation by returning an appropriate result or error message
+                return new Result<bool> { Value = false, ReturnMessage = $"Operation canceled. Please try again. {ex.Message}" };
             }
-
-            return post;
+            catch (Exception ex)
+            {
+                return new Result<bool> { Value = false, ReturnMessage = $"Error : {ex.Message}" };
+            }
         }
 
-        public async Task RemovePost(int? id)
+        public Result<List<Post>> GetAllPosts()
         {
-            var post = await _context.Posts.FirstOrDefaultAsync(s => s.PId == id);
+            string sql = "EXEC sp_AHub_GetAllPost @Result OUTPUT, @ReturnMessage OUTPUT";
+            var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            var errorMsg = new SqlParameter("@ReturnMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
 
-            if(post == null) return;
+            try
+            {
+                var postList = _context.Posts.FromSqlRaw<Post>(sql, result, errorMsg).ToList();
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var errorFromDb = errorMsg.Value?.ToString();
 
-            _context.Posts.Remove(post);
-            await _context.SaveChangesAsync();
+                return new Result<List<Post>> { Value = postList, ReturnMessage = errorFromDb! };
+            }
+            catch (Exception ex)
+            {
+                return new Result<List<Post>> { Value = null!, ReturnMessage = $"Error {ex.Message}" };
+            }
         }
 
-        public async Task<bool> UpdatePost(Post post)
+        public Result<Post> GetPostById(int? id)
         {
-            if(post == null) return false;
+            throw new NotImplementedException();
+        }
 
-            var existingPost = await _context.Posts.FirstOrDefaultAsync(s => s.PId == post.PId);
+        public Result<bool> RemovePost(int? id)
+        {
+            throw new NotImplementedException();
+        }
 
-            if(existingPost == null) return false;
-
-            existingPost.Date = DateTime.Now;
-            existingPost.Title = post.Title;
-            existingPost.Content = post.Content;
-
-            _context.Posts.Update(post);
-            var rowsAffected = await _context.SaveChangesAsync();
-
-            return rowsAffected > 0;
+        public Result<bool> UpdatePost(Post post)
+        {
+            throw new NotImplementedException();
         }
     }
 }

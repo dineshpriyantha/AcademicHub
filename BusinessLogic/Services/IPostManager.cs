@@ -9,10 +9,10 @@ namespace BusinessLogic.Services
 {
     public interface IPostManager
     {
-        Task<bool> AddPost(Post post);
-        Task RemovePost(int? id);
-        Task<bool> UpdatePost(Post post);
-        Task<Post> GetPostById(int? id);
-        Task<IEnumerable<Post>> GetAllPosts();
+        Result<bool> AddPost(Post post);
+        Result<bool> RemovePost(int? id);
+        Result<bool> UpdatePost(Post post);
+        Result<Post> GetPostById(int? id);
+        Result<List<Post>> GetAllPosts();
     }
 }

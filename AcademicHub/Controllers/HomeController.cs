@@ -14,6 +14,7 @@ namespace AcademicHub.Controllers
         private readonly CategoryManager _categoryManager;
         private readonly AcademicHubDbContext _context;
         private readonly SubCategoryManager _subCategoryManager;
+        private readonly PostManager _post;
 
         public HomeController(ILogger<HomeController> logger, AcademicHubDbContext context)
         {
@@ -21,6 +22,7 @@ namespace AcademicHub.Controllers
             _context = context;
             _categoryManager = new CategoryManager(_context);
             _subCategoryManager= new SubCategoryManager(_context);
+            _post = new PostManager(_context);
         }
 
         public IActionResult Index()
@@ -29,11 +31,13 @@ namespace AcademicHub.Controllers
             // Retrieve the list of categories from your data source
             List<Category> categories = _categoryManager.GetCategories().Value;
             List<Subcategory> subCategories = _subCategoryManager.GetAllSubCategories().Value;
+            List<Post> posts = _post.GetAllPosts().Value;
 
             var viewModel = new CategorySubcategoryViewModel()
             {
                 Category = categories,
-                Subcategory = subCategories
+                Subcategory = subCategories,
+                Posts = posts
             };
 
             // Populate the Subcategory property if needed

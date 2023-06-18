@@ -1,0 +1,65 @@
+﻿@using DataAccessLayer
+@model List<Post>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <a asp-action="CreatePost" class="btn btn-success"> Create New</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        @ViewBag.Category
+        @if (Model != null && Model.Count > 0)
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Content</th>
+                        <th>Category</th>
+                        <th>Sub Category</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var post in Model)
+                {
+                    <tr>
+                        <td>@post.Title</td>
+                        <td>@post.Date</td>
+                        <td>@post.Content</td>
+                        <td>@post.CategoryId</td>
+                        <td>@post.SubcategoryId</td>
+                        <td>
+                            <a href="@Url.Action("Update", "Admin", new { id = post.PId })" class="btn btn-primary">E</a> |
+                            <a href="@Url.Action("Delete", "Admin", new { id = post.PId })" class="btn btn-danger" onclick="return confirmDelete()">D</a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+        else
+        {
+                <p>No posts found.</p>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+    function confirmDelete() {
+        if (confirm("Are you sure you want to delete this item?")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>

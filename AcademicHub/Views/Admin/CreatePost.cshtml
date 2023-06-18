@@ -1,0 +1,96 @@
+﻿@model DataAccessLayer.Model.Post
+
+@{
+    ViewData["Title"] = "Post";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h1>Post</h1>
+@if (!string.IsNullOrEmpty(@ViewBag.message))
+{
+    <div class="alert @(ViewBag.Success ? "alert-success" : "alert-danger")" role="alert">
+        @ViewBag.message
+    </div>
+}
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="CreatePost">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <input type="hidden" asp-for="PId" class="form-control" />
+            </div>
+             <div class="form-group">
+                <label asp-for="CategoryId" class="control-label"></label>
+                @Html.DropDownListFor(x => x.CategoryId,ViewBag.Category as SelectList, "Select Category", new{ @class = "form-control", id = "categoryDropdown" })
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SubcategoryId" class="control-label"></label>
+                <select asp-for="SubcategoryId" class="form-control" id="subcategoryDropdown" disabled>
+                    <option value="">Select Subcategory</option>
+                </select>
+                <span asp-validation-for="SubcategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Content" class="control-label"></label>
+                <textarea cols="80" asp-for="Content" name="Content" rows="10"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>            
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="PostIndex" class="btn btn-dark">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script src="https://cdn.ckeditor.com/4.15.1/standard-all/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('Content', {
+            fullPage: true,
+            extraPlugins: 'docprops',
+            allowedContent: true,
+            height: 320
+        });
+    </script>
+
+    <script>
+        $(function () {
+            // Handle category change event
+            $('#categoryDropdown').change(function () {
+                var categoryId = $(this).val();
+                var subcategoryDropdown = $('#subcategoryDropdown');
+
+                // Clear existing options
+                subcategoryDropdown.empty();
+
+                if (categoryId !== '') {
+                    // Make AJAX request to retrieve subcategories
+                    $.get('/Admin/GetSubcategories?categoryId=' + categoryId, function (data) {
+                        // Add subcategory options to the dropdown
+                        $.each(data, function (index, subcategory) {
+                            subcategoryDropdown.append($('<option>', {
+                                value: subcategory.sId,
+                                text: subcategory.name
+                            }));
+                        });
+
+                        // Enable the subcategory dropdown
+                        subcategoryDropdown.prop('disabled', false);
+                    });
+                } else {
+                    // Disable the subcategory dropdown if no category is selected
+                    subcategoryDropdown.prop('disabled', true);
+                }
+            });
+        });
+    </script>
+}

@@ -315,7 +315,39 @@ END
 
 
 
+--------- Post -----------------
 
+CREATE PROCEDURE sp_AHub_AddPost
+	@Title NVARCHAR(100),
+	@Date DATETIME,
+	@Content NVARCHAR(Max),
+	@CategoryId INT,
+	@SubcategoryId INT,
+	@Result INT OUTPUT,
+	@ReturnMessage NVARCHAR(200) OUTPUT
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	IF NOT EXISTS (SELECT 1 FROM Posts WHERE Title = @Title)
+	BEGIN
+		BEGIN TRY
+			INSERT INTO Posts(Title, [Date], Content, CategoryId, SubcategoryId)
+			VALUES(@Title, @Date, @Content, @CategoryId, @SubcategoryId)
+			SET @Result = 1;
+			SET @ReturnMessage = 'Insert Successfully';
+		END TRY
+		BEGIN CATCH
+			SET @Result = 0; -- Failure
+			SET @ReturnMessage = 'Error: '+ERROR_MESSAGE();
+		END CATCH		
+	END
+	ELSE
+	BEGIN
+		SET @Result = 0;
+		SET @ReturnMessage = 'Post Already Exists';
+	END
+END
 
 
 
