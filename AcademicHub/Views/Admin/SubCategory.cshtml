@@ -5,7 +5,13 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>SubCategory</h1>
+<h1>Sub Category</h1>
+@if (!string.IsNullOrEmpty(@ViewBag.message))
+{
+        <div class="alert @(ViewBag.Success ? "alert-success" : "alert-danger")" role="alert">
+        @ViewBag.message
+        </div>
+}
 
 <hr />
 <div class="row">
@@ -13,18 +19,13 @@
         <form method="post" enctype="multipart/form-data" asp-action="SubCategory">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="SId" class="control-label"></label>
-                <input asp-for="SId" class="form-control" />
-                <span asp-validation-for="SId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CategoryId" class="control-label"></label>
-                <input asp-for="CategoryId" class="form-control" />
+                @Html.DropDownListFor(x => x.CategoryId,ViewBag.Category as SelectList, "Select Category", new{ @class = "form-control" })
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -34,12 +35,10 @@
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="SubcategoryIndex" class="btn btn-dark">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 

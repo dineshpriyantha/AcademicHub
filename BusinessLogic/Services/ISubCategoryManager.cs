@@ -9,10 +9,10 @@ namespace BusinessLogic.Services
 {
     public interface ISubCategoryManager
     {
-        Task<bool> AddSubCategory(Subcategory subcategory);
-        Task RemoveSubCategory(int? id);
-        Task<bool> UpdateSubCategory(Subcategory subcategory);
-        Task<Subcategory> GetSubCategoryById(int? id);
-        Task<IEnumerable<Subcategory>> GetAllSubCategories();
+        Result<bool> AddSubCategory(Subcategory subcategory);
+        Result<bool> RemoveSubCategory(int? id);
+        Result<bool> UpdateSubCategory(Subcategory subcategory);
+        Result<Subcategory> GetSubCategoryById(int? id);
+        Result<List<Subcategory>> GetAllSubCategories();
     }
 }

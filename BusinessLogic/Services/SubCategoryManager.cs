@@ -1,8 +1,10 @@
 ﻿using DataAccessLayer;
 using DataAccessLayer.Model;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,66 +20,131 @@ namespace BusinessLogic.Services
             _context = context;
         }
 
-        public async Task<bool> AddSubCategory(Subcategory subcategory)
+        public Result<bool> AddSubCategory(Subcategory subcategory)
         {
-            if (subcategory == null) return false;
+            if (subcategory == null) return new Result<bool> { Value = false, ReturnMessage = "Invalid categoty" };
 
-            // check if a hub with the same category
-            var existingCategory = await _context.Subcategories.FirstOrDefaultAsync(x => x.Name == subcategory.Name);
-
-            if (existingCategory != null) return false;
-
-            _context.Subcategories.Add(subcategory);
-            var rowsAffected = await _context.SaveChangesAsync();
-
-            return rowsAffected > 0;
-        }
-
-        public async Task<IEnumerable<Subcategory>> GetAllSubCategories()
-        {
-            return await _context.Subcategories.ToListAsync();
-        }
-
-        public async Task<Subcategory> GetSubCategoryById(int? id)
-        {
-            if(id == null)
+            try
             {
-                throw new ArgumentNullException(nameof(id));
+                string sql = "EXEC sp_AHub_AddSubCategory @Name, @Date, @CategoryId, @SRank, @Result OUTPUT, @ReturnMessage OUTPUT";
+
+                var name = new SqlParameter("@Name", SqlDbType.NVarChar) { Value = subcategory.Name };
+                var date = new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTime.Now };
+                var categoryId = new SqlParameter("@CategoryId", SqlDbType.Int) { Value = subcategory.CategoryId };
+                var srank = new SqlParameter("@SRank", SqlDbType.Int) { Value = subcategory.SRank };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var returnMsg = new SqlParameter("@ReturnMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
+
+                _context.Database.ExecuteSqlRaw(sql, name, date, categoryId, srank, result, returnMsg);
+
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var returnFromDb = returnMsg.Value?.ToString();
+
+                return new Result<bool> { Value = resultFromDb, ReturnMessage = returnFromDb };
+
             }
-
-            var subCategory = await _context.Subcategories.FirstOrDefaultAsync(x => x.SId == id);
-
-            if(subCategory == null)
+            catch (TaskCanceledException ex)
             {
-                throw new ArgumentException("The specified sub category does not exist", nameof(subCategory));
+                // Handle the cancellation by returning an appropriate result or error message
+                return new Result<bool> { Value = false, ReturnMessage = $"Operation canceled. Please try again. : {ex.Message}" };
             }
-            return subCategory;
+            catch (Exception ex)
+            {
+                return new Result<bool> { Value = false, ReturnMessage = $"Error : {ex.Message}" };
+            }
         }
-
-        public async Task RemoveSubCategory(int? id)
+        public Result<bool> UpdateSubCategory(Subcategory subcategory)
         {
-            var subCategory = await _context.Subcategories.FirstOrDefaultAsync(x => x.SId == id);
+            if (subcategory == null) return new Result<bool> { Value = false, ReturnMessage = "Invalid Sub Categoty" };
 
-            if (subCategory == null) return;
+            try
+            {
+                string sql = "EXEC sp_AHub_UpdateSubCategory @SId, @Name, @Date, @CategoryId, @SRank, @Result OUTPUT, @ReturnMessage OUTPUT";
+                var cId = new SqlParameter("@SId", SqlDbType.Int) { Value = subcategory.SId };
+                var name = new SqlParameter("@Name", SqlDbType.NVarChar) { Value = subcategory.Name };
+                var date = new SqlParameter("@Date", SqlDbType.DateTime) { Value = DateTime.Now };
+                var categoryId = new SqlParameter("@CategoryId", SqlDbType.Int) { Value = subcategory.CategoryId };
+                var srank = new SqlParameter("@SRank", SqlDbType.Int) { Value = subcategory.SRank };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var errorMsg = new SqlParameter("@ReturnMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
 
-            _context.Subcategories.Remove(subCategory);
-            await _context.SaveChangesAsync();
+                _context.Database.ExecuteSqlRaw(sql, cId, name, date, categoryId, srank, result, errorMsg);
+
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var errorFromDb = errorMsg.Value?.ToString();
+
+                return new Result<bool> { Value = resultFromDb, ReturnMessage = errorFromDb };
+            }
+            catch (Exception ex)
+            {
+                return new Result<bool> { Value = false, ReturnMessage = $"Error {ex.Message}" };
+            }
         }
 
-        public async Task<bool> UpdateSubCategory(Subcategory subcategory)
+        public Result<List<Subcategory>> GetAllSubCategories()
         {
-            if (subcategory == null) return false;
+            string sql = "EXEC sp_AHub_GetSubCategory @Result OUTPUT, @ReturnMessage OUTPUT";
+            var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            var returnMsg = new SqlParameter("@ReturnMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
 
-            var existingCategory = await _context.Subcategories.FirstOrDefaultAsync(x => x.SId == subcategory.SId);
+            try
+            {
+                var subCategoryList = _context.Subcategories.FromSqlRaw<Subcategory>(sql, result, returnMsg).ToList();
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var returnFromDb = returnMsg.Value?.ToString();
 
-            if (existingCategory == null) return false;
-
-            existingCategory.Date = DateTime.Now;
-
-            _context.Subcategories.Update(subcategory);
-            var rowsAffected = await _context.SaveChangesAsync();
-
-            return rowsAffected > 0;
+                return new Result<List<Subcategory>> { Value = subCategoryList, ReturnMessage = returnFromDb! };
+            }
+            catch (Exception ex)
+            {
+                return new Result<List<Subcategory>> { Value = null!, ReturnMessage = $"Error {ex.Message}" };
+            }
         }
+
+        public Result<Subcategory> GetSubCategoryById(int? id)
+        {
+            if (id == null) return new Result<Subcategory> { Value = null!, ReturnMessage = "Invalid Category" };
+            try
+            {
+                string sql = "EXEC sp_AHub_GetSubCategoryById @SId, @Result OUTPUT, @ReturnMessage OUTPUT";
+                var sId = new SqlParameter("@SId", SqlDbType.Int) { Value = id };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var errorMsg = new SqlParameter("@ReturnMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
+
+                var subCategory = _context.Subcategories.FromSqlRaw<Subcategory>(sql, sId, result, errorMsg).AsEnumerable().FirstOrDefault();
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var returnFromDb = errorMsg.Value?.ToString();
+
+                return new Result<Subcategory> { Value = subCategory!, ReturnMessage = returnFromDb! };
+            }
+            catch (Exception ex)
+            {
+                return new Result<Subcategory> { Value = null!, ReturnMessage = $"Error {ex.Message}" };
+            }
+        }
+
+        public Result<bool> RemoveSubCategory(int? id)
+        {
+            if (id == null) return new Result<bool> { Value = false, ReturnMessage = "Invalid Category" };
+
+            try
+            {
+                string sql = "EXEC sp_AHub_DeleteSubCategory @SId, @Result OUTPUT, @ReturnMessage OUTPUT";
+                var sId = new SqlParameter("@SId", SqlDbType.Int) { Value = id };
+                var result = new SqlParameter("@Result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+                var returnMsg = new SqlParameter("@ReturnMessage", SqlDbType.NVarChar, 200) { Direction = ParameterDirection.Output };
+
+                _context.Database.ExecuteSqlRaw(sql, sId, result, returnMsg);
+                var resultFromDb = Convert.ToBoolean(result.Value);
+                var returnFromDb = returnMsg.Value?.ToString();
+
+                return new Result<bool> { Value = resultFromDb, ReturnMessage = returnFromDb! };
+            }
+            catch (Exception ex)
+            {
+                return new Result<bool> { Value = false, ReturnMessage = $"Error {ex.Message}" };
+            }
+        }
+
     }
 }

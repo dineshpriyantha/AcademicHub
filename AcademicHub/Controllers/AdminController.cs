@@ -9,17 +9,19 @@ namespace AcademicHub.Controllers
     public class AdminController : Controller
     {
         private readonly AcademicHubDbContext _context;
-        private readonly CategoryManager _manager;
+        private readonly CategoryManager _CategoryManager;
+        private readonly SubCategoryManager _subCategoryManager;
 
         public AdminController(AcademicHubDbContext context)
         {
             _context = context;
-            _manager = new CategoryManager(_context);
+            _CategoryManager = new CategoryManager(_context);
+            _subCategoryManager = new SubCategoryManager(_context);
         }
 
         public IActionResult Index()
         {
-            var categorylist = _manager.GetCategories();
+            var categorylist = _CategoryManager.GetCategories();
 
             if(categorylist.Value != null)
             {
@@ -28,16 +30,45 @@ namespace AcademicHub.Controllers
             }
             else
             {
-                var errorMassage = categorylist.ErrorMessage;
+                var errorMassage = categorylist.ReturnMessage;
+                return View("Error", errorMassage);
+            }
+        }
+
+        public IActionResult CategoryIndex()
+        {
+            var categorylist = _CategoryManager.GetCategories();
+
+            if (categorylist.Value != null)
+            {
+                var categories = categorylist.Value;
+                return View(categories);
+            }
+            else
+            {
+                var errorMassage = categorylist.ReturnMessage;
+                return View("Error", errorMassage);
+            }
+        }
+
+        public IActionResult SubCategoryIndex()
+        {
+            var subCategorylist = _subCategoryManager.GetAllSubCategories();
+
+            if (subCategorylist.Value != null)
+            {
+                var categories = subCategorylist.Value;
+                return View(categories);
+            }
+            else
+            {
+                var errorMassage = subCategorylist.ReturnMessage;
                 return View("Error", errorMassage);
             }
         }
 
         public IActionResult Category()
         {
-            //var displayArea = Enum.GetNames(typeof(DisplayArea))
-            //                      .Select(x => new SelectListItem { Value = x, Text = x}).ToList();
-
             var enumData = from DisplayArea e in Enum.GetValues(typeof(DisplayArea))
                            select new
                            {
@@ -46,9 +77,7 @@ namespace AcademicHub.Controllers
                            };
 
             ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
-            var model = new Category();
-
-
+            
             return View();
         }
 
@@ -66,8 +95,8 @@ namespace AcademicHub.Controllers
 
                 ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
 
-                var addCategory = _manager.AddCategory(category);
-                ViewBag.message = addCategory.ErrorMessage;
+                var addCategory = _CategoryManager.AddCategory(category);
+                ViewBag.message = addCategory.ReturnMessage;
                 ViewBag.Success = addCategory.Value;
             }
             catch (Exception ex)
@@ -83,7 +112,7 @@ namespace AcademicHub.Controllers
             try
             {
                 // Retrive the category from the database using the provided id
-                var category = _manager.GetCategoryById(id);
+                var category = _CategoryManager.GetCategoryById(id);
 
                 if (category != null)
                 {
@@ -111,8 +140,6 @@ namespace AcademicHub.Controllers
         [HttpPost]
         public IActionResult Update(Category category)
         {
-            //if (!ModelState.IsValid) { return View(category); }
-
             try
             {
                 var enumData = from DisplayArea e in Enum.GetValues(typeof(DisplayArea))
@@ -123,8 +150,8 @@ namespace AcademicHub.Controllers
                                };
 
                 ViewBag.DisplayArea = new SelectList(enumData, "ID", "Name");
-                var updateCategory = _manager.UpdateCategory(category);
-                ViewBag.message = updateCategory.ErrorMessage;
+                var updateCategory = _CategoryManager.UpdateCategory(category);
+                ViewBag.message = updateCategory.ReturnMessage;
                 ViewBag.success = updateCategory.Value;
             }
             catch (Exception ex)
@@ -139,15 +166,15 @@ namespace AcademicHub.Controllers
         {
             try
             {
-                Result<bool> category = _manager.RemoveCategory(id);
+                Result<bool> category = _CategoryManager.RemoveCategory(id);
                 if (category.Value)
                 {
-                    ViewBag.Category = category.ErrorMessage;
+                    ViewBag.Category = category.ReturnMessage;
                     return RedirectToAction("Index");
                 }
                 else
                 {
-                    return View(category.ErrorMessage);
+                    return View(category.ReturnMessage);
                 }
             }
             catch (Exception ex)
@@ -158,21 +185,139 @@ namespace AcademicHub.Controllers
 
         public IActionResult SubCategory()
         {
+            try
+            {
+                var categorylist = _CategoryManager.GetCategories();
+                var enumData = from Category e in categorylist.Value.ToList()
+                               select new
+                               {
+                                   ID = (int)e.CId,
+                                   Name = e.Name.ToString()
+                               };
+
+                ViewBag.Category = new SelectList(enumData, "ID", "Name");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.message = ex.Message;
+                ViewBag.Success = false;
+            }          
+
             return View();
         }
 
         [HttpPost]
         public IActionResult SubCategory(Subcategory subcategory)
         {
-            return View();
+            try
+            {
+                var categorylist = _CategoryManager.GetCategories();
+                var enumData = from Category e in categorylist.Value.ToList()
+                               select new
+                               {
+                                   ID = (int)e.CId,
+                                   Name = e.Name.ToString()
+                               };
+
+                ViewBag.Category = new SelectList(enumData, "ID", "Name");
+
+                var addCategory = _subCategoryManager.AddSubCategory(subcategory);
+                ViewBag.message = addCategory.ReturnMessage;
+                ViewBag.Success = addCategory.Value;
+            }
+            catch (Exception ex)
+            {
+                ViewBag.message = ex.Message;
+                ViewBag.Success = false;
+            }
+
+            return View(subcategory);
         }
 
+        public IActionResult UpdateSubCategory(int id)
+        {
+            try
+            {
+                // Retrive the category from the database using the provided id
+                var subCategory = _subCategoryManager.GetSubCategoryById(id);
+
+                if (subCategory != null)
+                {
+                    var categorylist = _CategoryManager.GetCategories();
+                    var enumData = from Category e in categorylist.Value.ToList()
+                                   select new
+                                   {
+                                       ID = (int)e.CId,
+                                       Name = e.Name.ToString()
+                                   };
+
+                    ViewBag.Category = new SelectList(enumData, "ID", "Name");
+
+                    return View(subCategory.Value);
+                }
+                ViewBag.message = "Category not found.";
+                ViewBag.Success = false;
+            }
+            catch (Exception ex)
+            {
+                ViewBag.message = ex.Message;
+                ViewBag.Success = false;
+
+            }
+            return View("Error");
+        }
+
+        [HttpPost]
+        public IActionResult UpdateSubCategory(Subcategory subCategory)
+        {
+            try
+            {
+                var categorylist = _CategoryManager.GetCategories();
+                var enumData = from Category e in categorylist.Value.ToList()
+                               select new
+                               {
+                                   ID = (int)e.CId,
+                                   Name = e.Name.ToString()
+                               };
+
+                ViewBag.Category = new SelectList(enumData, "ID", "Name");
+
+                var updateCategory = _subCategoryManager.UpdateSubCategory(subCategory);
+                ViewBag.message = updateCategory.ReturnMessage;
+                ViewBag.success = updateCategory.Value;
+            }
+            catch (Exception ex)
+            {
+                return View("Error ", ex.Message);
+            }
+            return View(subCategory);
+        }
+
+        public IActionResult DeleteSubcategory(int id)
+        {
+            try
+            {
+                Result<bool> subCategory = _subCategoryManager.RemoveSubCategory(id);
+                if (subCategory.Value)
+                {
+                    ViewBag.Category = subCategory.ReturnMessage;
+                    return RedirectToAction("SubCategoryIndex");
+                }
+                else
+                {
+                    return View(subCategory.ReturnMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                return View(ex.Message);
+            }
+        }
 
         public IActionResult Post()
         {
             return View();
         }
-
 
     }
 }

@@ -19,6 +19,6 @@ namespace BusinessLogic.Services
     public class Result<T>
     {
         public T Value { get; set; }
-        public string ErrorMessage { get; set; }
+        public string ReturnMessage { get; set; }
     }
 }
