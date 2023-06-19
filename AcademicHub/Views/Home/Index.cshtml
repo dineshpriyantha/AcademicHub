@@ -133,7 +133,7 @@
                 <!--- \\\\\\\Post-->
             @if(Model.Posts != null)
             {
-                @foreach (var post in Model.Posts)
+                @foreach (var post in Model.Posts.OrderByDescending(x => x.PId))
                 {
                     <div class="card gedf-card">
                         <div class="card-header">

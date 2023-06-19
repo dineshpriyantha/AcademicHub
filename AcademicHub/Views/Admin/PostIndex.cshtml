@@ -30,7 +30,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var post in Model)
+                    @foreach (var post in Model.OrderByDescending(x => x.PId))
                     {
                         <tr>
                             <td>@post.Title</td>

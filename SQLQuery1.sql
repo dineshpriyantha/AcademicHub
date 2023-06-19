@@ -349,7 +349,19 @@ BEGIN
 	END
 END
 
+CREATE PROCEDURE sp_AHub_GetAllPost
+	@Result INT OUTPUT,
+	@ReturnMessage NVARCHAR(200) OUTPUT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	BEGIN
+		SELECT * FROM Posts
 
+		SET @Result = 1;
+		SET @ReturnMessage = 'Success';
+	END
+END
 
 
 
