@@ -2,6 +2,7 @@ using DataAccessLayer;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using System;
+using Microsoft.AspNetCore.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -172,7 +172,7 @@ namespace AcademicHub.Controllers
                 if (category.Value)
                 {
                     ViewBag.Category = category.ReturnMessage;
-                    return RedirectToAction("Index");
+                    return RedirectToAction("CategoryIndex");
                 }
                 else
                 {
